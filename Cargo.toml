@@ -1,0 +1,18 @@
+[package]
+name = "dotow"
+version = "0.1.0"
+authors = ["Kevin <quebin31@gmail.com>"]
+edition = "2018"
+
+[dependencies.io]
+version = "0.1.7"
+package = "text_io"
+
+[dependencies.clap]
+version = "2"
+default-features = false
+features = [ "color", "wrap_help" ]
+
+[dependencies]
+rayon = "1.0.3"
+ansi_term = "0.11"
