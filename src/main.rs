@@ -13,7 +13,7 @@ mod remove;
 
 use std::env::{var, current_dir};
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut dotow = clap_app!{ dotow =>
         (version: "0.1")
         (author: "Kevin Del Castillo <quebin31@gmail.com>")
@@ -50,7 +50,7 @@ fn main() {
 
         ("install", Some(install)) => {
             let home_dir = var("HOME").unwrap();
-            let current_dir = current_dir().unwrap().to_str().unwrap().to_owned();
+            let current_dir = current_dir()?.to_str().expect("Cannot read current dir").to_owned();
 
             let working_dir = install.value_of("WORKING_DIR").unwrap_or(&current_dir);
             let target_dir = install.value_of("TARGET_DIR").unwrap_or(&home_dir);
@@ -64,4 +64,6 @@ fn main() {
 
         _ => { dotow.print_help().unwrap(); }
     }
+
+    Ok(())
 }
