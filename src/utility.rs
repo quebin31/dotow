@@ -1,4 +1,8 @@
+use std::path::Path;
 use std::collections::BTreeSet;
+use std::error::Error as StdError;
+
+use crate::error::{self, Error};
 
 static KNOWN_COMMANDS: &[&'static str] = &["create", "install", "remove", "help"];
 
@@ -27,6 +31,23 @@ pub fn similar_command(cmd: &str) -> String {
 
     KNOWN_COMMANDS[max_index].to_owned()
 }
+
+pub fn check_directory(path: &Path) -> error::Result<()> {
+    if !path.is_dir() {
+        return Err(Error::NotDirectory(
+            path.to_str().unwrap_or("unknown").to_owned(),
+        ));
+    }
+
+    if !path.exists() {
+        return Err(Error::DirectoryDoesNotExists(
+            path.to_str().unwrap_or("unknown").to_owned(),
+        ));
+    }
+
+    Ok(())
+}
+
 
 #[macro_export]
 macro_rules! uiprint {
@@ -57,8 +78,10 @@ macro_rules! flush {
 
 #[cfg(test)]
 mod test {
+    use std::error::Error as StdError;
+
     #[test]
-    fn command_suggestions() -> Result <(), Box<dyn std::error::Error>>{
+    fn command_suggestions() -> Result <(), Box<dyn StdError>>{
         let cmd = "crate";
         let suggested = super::similar_command(&cmd);
         assert_eq!(suggested, "create");
