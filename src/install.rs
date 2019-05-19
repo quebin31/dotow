@@ -127,12 +127,15 @@ pub fn install(working: &str, target: &str) -> Result<(), Box<dyn StdError>> {
 #[cfg(test)]
 mod test {
     use std::path::Path;
+    use std::iter::FromIterator;
+    use std::collections::BTreeSet;
     use std::error::Error as StdError;
 
     #[test]
     fn get_ignores() -> Result<(), Box<dyn StdError>> {
         let ignores = super::get_ignores(Path::new("test/dotfiles"))?;
-        println!("{:#?}", ignores);
+        let expected = vec!["dotfile2".to_owned()];
+        assert_eq!(ignores, BTreeSet::from_iter(expected));
 
         Ok(())
     }
