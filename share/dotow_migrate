@@ -1,0 +1,11 @@
+nvim ~/.config/nvim
+i3 ~/.config/i3
+bspwm ~/.config/bspwm
+vimrc ~/.vimrc
+zshrc ~/.zshrc
+kitty ~/.config/kitty
+alacritty ~/.config/alacritty
+albert ~/.config/albert 
+rofi ~/.config/rofi
+mpd ~/.config/mpd
+ranger ~/.config/ranger
