@@ -4,14 +4,15 @@ use std::error::Error as StdError;
 
 use crate::error::{self, Error};
 
-static KNOWN_COMMANDS: &[&'static str] = &["create", "install", "remove", "help"];
+static KNOWN_COMMANDS: &[&'static str] = &["migrate", "install", "remove", "help"];
 
 fn jaccard_index(a: &str, b: &str) -> f64 {
     let set_of_a: BTreeSet<_> = a.chars().collect();
     let set_of_b: BTreeSet<_> = b.chars().collect();
+    let union: BTreeSet<_> = set_of_a.union(&set_of_b).collect();
     let intersection: BTreeSet<_> = set_of_a.intersection(&set_of_b).collect();
 
-    let union_len = set_of_a.len() + set_of_b.len();
+    let union_len = union.len();
     let intersection_len = intersection.len();
 
     intersection_len as f64 / union_len as f64

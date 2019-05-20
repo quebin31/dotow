@@ -7,7 +7,7 @@ use ansi_term::Colour::{
 mod utility;
 
 mod error;
-mod create;
+mod migrate;
 mod install;
 mod remove;
 
