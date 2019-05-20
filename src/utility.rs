@@ -83,13 +83,13 @@ mod test {
 
     #[test]
     fn command_suggestions() -> Result <(), Box<dyn StdError>>{
-        let cmd = "crate";
-        let suggested = super::similar_command(&cmd);
-        assert_eq!(suggested, "create");
-
-        let cmd = "intal";
+        let cmd = "intall";
         let suggested = super::similar_command(&cmd);
         assert_eq!(suggested, "install");
+
+        let cmd = "migate";
+        let suggested = super::similar_command(&cmd);
+        assert_eq!(suggested, "migrate");
 
         let cmd = "rmv";
         let suggested = super::similar_command(&cmd);
