@@ -41,13 +41,30 @@ pub fn check_directory(path: &Path) -> error::Result<()> {
     }
 
     if !path.exists() {
-        return Err(Error::DirectoryDoesNotExists(
+        return Err(Error::DirectoryDoesNotExist(
             path.to_str().unwrap_or("unknown").to_owned(),
         ));
     }
 
     Ok(())
 }
+
+pub fn check_file(path: &Path) -> error::Result<()> {
+    if !path.is_file() {
+        return Err(Error::NotFile(
+            path.to_str().unwrap_or("unknown").to_owned(),
+        ));
+    }
+
+    if !path.exists() {
+        return Err(Error::FileDoesNotExist(
+            path.to_str().unwrap_or("unknown").to_owned(),
+        ));
+    }
+
+    Ok(())
+}
+
 
 
 #[macro_export]

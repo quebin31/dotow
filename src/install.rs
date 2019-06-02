@@ -18,29 +18,14 @@ use crate::utility;
 use crate::error::Error;
 
 fn get_ignores(working_path: &Path) -> Result<BTreeSet<String>, Box<dyn StdError>> {
-    let mut dotow_ignore_found = false;
-
-    for file in working_path.read_dir()? {
-        let file = file?;
-        if !file.file_type()?.is_file() {
-            continue;
-        }
-
-        let file_name = file.file_name();
-        let file_name = file_name.to_str().ok_or(Error::FailToConvertFileName(file_name.clone()))?;
-
-        if file_name == ".dotowignore" {
-            dotow_ignore_found = true;
-            break;
-        }
-    }
-
     let mut ignores = BTreeSet::new();
-    if !dotow_ignore_found {
+    let dotow_ignore_path = working_path.join(".dotowignore");
+
+    if !dotow_ignore_path.exists() || !dotow_ignore_path.is_file() {
         return Ok(ignores);
     }
-
-    let dotow_ignore = File::open(working_path.join(".dotowignore"))?;
+    
+    let dotow_ignore = File::open(dotow_ignore_path)?;
     for line in BufReader::new(dotow_ignore).lines().map(|l| l.unwrap()) {
         if line.contains(" ") || line.contains("\t") {
             return Err(Box::new(Error::BadString(line)));
@@ -52,29 +37,35 @@ fn get_ignores(working_path: &Path) -> Result<BTreeSet<String>, Box<dyn StdError
     Ok(ignores)
 }
 
-fn get_dotfiles(working_path: &Path) -> Vec<String> {
-    let mut dots = Vec::new();
+fn get_dotfiles(working_path: &Path) -> Result<Vec<String>, Box<dyn StdError>> {
+    let directory = working_path.read_dir()?
+        .filter_map(|entry| {
+            let entry = entry.expect("Error reading directory entries");
 
-    for dot in working_path.read_dir().expect("Failed to read directory") {
-        let dot = dot.unwrap().path();
-        if dot.is_dir() {
-            let dot = dot.file_name().unwrap().to_str().unwrap();
-            if dot.starts_with(".") {
-                continue;
+            match (entry.file_type().ok(), entry.file_name().to_str()) {
+                (Some(ftype), Some(fname)) => {
+                    if ftype.is_dir() && !fname.starts_with(".") {
+                        Some(fname.to_owned())
+                    } else {
+                        None
+                    }
+                }
+                _ => None
             }
+        });
 
-            dots.push(dot.to_owned());
-        }
-    }
+    let dots: Vec<_> = directory
+        .map(|s| s.to_owned())
+        .collect();
 
-    dots
+    Ok(dots)
 }
 
 pub fn install(working: &str, target: &str) -> Result<(), Box<dyn StdError>> {
-    let target_path = Path::new(target).canonicalize().unwrap();
+    let target_path = Path::new(target).canonicalize()?;
     utility::check_directory(&target_path)?;
 
-    if target_path.to_str().unwrap() != env::var("HOME").unwrap() {
+    if target_path.to_str().ok_or(Error::Utf8Error)? != env::var("HOME").unwrap() {
         uiprint!(warning format!("target directory is not $HOME ({})", env::var("HOME").unwrap()));
         uiprint!(warning format!("target directory is {}", target_path.to_str().unwrap()));
     }
@@ -82,7 +73,7 @@ pub fn install(working: &str, target: &str) -> Result<(), Box<dyn StdError>> {
     let working_path = Path::new(working).canonicalize().unwrap();
     utility::check_directory(&working_path)?;
 
-    let dotfiles = get_dotfiles(&working_path);
+    let dotfiles = get_dotfiles(&working_path)?;
     let mut ignores = get_ignores(&working_path)?;
 
     println!("{} I've found the following dotfiles: ", Yellow.paint("::"));
@@ -130,6 +121,20 @@ mod test {
     use std::iter::FromIterator;
     use std::collections::BTreeSet;
     use std::error::Error as StdError;
+
+    #[test]
+    fn get_dotfiles() -> Result<(), Box<dyn StdError>> {
+        let dotfiles = super::get_dotfiles(Path::new("test/dotfiles"))?;
+        let expected = vec![
+            "dotfile1".to_owned(), 
+            "dotfile2".to_owned(), 
+            "dotfile3".to_owned()
+        ];
+
+        assert_eq!(dotfiles, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn get_ignores() -> Result<(), Box<dyn StdError>> {
